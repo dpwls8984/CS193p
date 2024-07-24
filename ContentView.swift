@@ -16,22 +16,62 @@ struct ContentView: View {
     // creating instances of structs / named parameters / parameter defaults
     // TupleView(bag of Lego)로 바꾸고 싶다면 @ViewBuilder 를 사용
     // View modifier scope
+    let emojis = ["👻", "😈", "☠️", "🎃", "💅", "😻", "😽", "👾", "💩", "🤓", "😤"]
+    
+    @State var cardCount: Int = 4
     
     var body: some View { //type--> the type of this variable has to be any struct in the world. which view? execute this code, see what it returns, use that.
-        let emojis = ["👻", "😈", "☠️", "🎃", "🎃"]
         //Array<String> == [String]
-
-        HStack{
-            ForEach(emojis.indices, id: \.self) { index in
-                CardView(content: emojis[index])
-            } //for loop, indices 는 emojis.length() 와 같은 기능을 하는 듯 (배열의 길이만큼)
+        VStack {
+            ScrollView {
+                cards
+            }
+            Spacer()
+            cardCountAdjusters
         }
-
-        .foregroundStyle(.orange)
-        .padding() //--> VStack 전체 요소에 영향을 미침
+        .padding() //--> VStack 전체 요소에 영향을 미치는가? NOPE. bc padding is one of the few view modifiers, but it's one that makes sense for the VStack itself to be padded, put padding around the whole thing. VStack 요소 하나하나에 간격을 띄우고 싶다면 padding이 아니라 spacing을 사용. VStack(spacing: 5) 과 같이.
 
 
     } //--> Computed Property, is not stored somewhere. every time someone asks for the value of body, it runs this code.
+    
+    var cards: some View { //not viewbuilder, just function
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 120))]) { //viewbuilder
+            ForEach(0..<cardCount, id: \.self) { index in
+                CardView(content: emojis[index])
+                    .aspectRatio(2/3, contentMode: .fit)
+            } //for loop, indices 는 emojis.length() 와 같은 기능을 하는 듯 (배열의 길이만큼)
+        }
+        .foregroundStyle(.orange)
+    }
+    
+    var cardCountAdjusters: some View {
+        HStack {
+            cardRemover
+            Spacer()
+            cardAdder
+        }
+        .imageScale(.large)
+        .font(.largeTitle)
+    }
+    
+    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
+        Button(action: {
+            cardCount += offset
+        }, label: {
+            Image(systemName: symbol)
+        })
+        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
+    }
+    
+    
+    var cardRemover: some View {
+        cardCountAdjuster(by: -1, symbol: "rectangle.stack.badge.minus.fill")
+    }
+    
+    var cardAdder: some View {
+        cardCountAdjuster(by: +1, symbol: "rectangle.stack.badge.plus.fill")
+
+    }
 }
 
 struct CardView: View {
@@ -52,13 +92,13 @@ struct CardView: View {
             //trailing closure syntax
             let base = RoundedRectangle(cornerRadius: 12) //type inference
             //let is a constant, it will never change bc Views are read-only BUT var means variable
-            if isFaceUp{
+            Group {
                 base.fill(.white)
                 base.strokeBorder(lineWidth: 2) //this needed arguments
                 Text(content).font(.largeTitle)
-            } else {
-                base //.fill 을 안해도 기본값으로 채워짐. 안에 색 혹은 스타일을 커스텀하고싶다면 따로 .fill로 만들면 됨.
             }
+            .opacity(isFaceUp ? 1 : 0)
+            base.fill().opacity(isFaceUp ? 0 : 1) //.fill 을 안해도 기본값으로 채워짐. 안에 색 혹은 스타일을 커스텀하고싶다면 따로 .fill로 만들면 됨.
         }.onTapGesture {
             isFaceUp = !isFaceUp
         }
@@ -66,6 +106,7 @@ struct CardView: View {
         // @State means temporary states
         
     }
+
 }
 
 
