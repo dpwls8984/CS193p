@@ -18,11 +18,13 @@ struct ContentView: View {
     // View modifier scope
     
     var body: some View { //type--> the type of this variable has to be any struct in the world. which view? execute this code, see what it returns, use that.
+        let emojis = ["👻", "😈", "☠️", "🎃", "🎃"]
+        //Array<String> == [String]
+
         HStack{
-            CardView(isFaceUp: true)
-            CardView()
-            CardView()
-            CardView()
+            ForEach(emojis.indices, id: \.self) { index in
+                CardView(content: emojis[index])
+            } //for loop, indices 는 emojis.length() 와 같은 기능을 하는 듯 (배열의 길이만큼)
         }
 
         .foregroundStyle(.orange)
@@ -33,7 +35,9 @@ struct ContentView: View {
 }
 
 struct CardView: View {
-    @State var isFaceUp = false //default is false
+    let content: String
+    @State var isFaceUp = true //default is false
+    
     //@State creating a pointer to isFaceUp there.
     //i cannot took this default value("= false"). if u have a var that has no value, any struct, that's not allowed.
     //"= false" 를 지웠을 땐 CardView에 argument가 없을 때 오류가 생기지만, 있으면 오류 X
@@ -51,7 +55,7 @@ struct CardView: View {
             if isFaceUp{
                 base.fill(.white)
                 base.strokeBorder(lineWidth: 2) //this needed arguments
-                Text("👻").font(.largeTitle)
+                Text(content).font(.largeTitle)
             } else {
                 base //.fill 을 안해도 기본값으로 채워짐. 안에 색 혹은 스타일을 커스텀하고싶다면 따로 .fill로 만들면 됨.
             }
